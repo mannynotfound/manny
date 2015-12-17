@@ -1,0 +1,27 @@
+{
+  "name": "manny",
+  "version": "1.0.2",
+  "description": "Manny is Awesome",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Manny is definitely awesome\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mannynotfound/manny.git"
+  },
+  "keywords": [
+    "Manny",
+    "Awesome",
+    "Cool",
+    "Bacon",
+    "Super"
+  ],
+  "author": "Manny 404",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mannynotfound/manny/issues"
+  },
+  "homepage": "https://github.com/mannynotfound/manny"
+}
