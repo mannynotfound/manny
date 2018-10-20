@@ -1,27 +1,37 @@
 {
   "name": "manny",
-  "version": "1.0.2",
-  "description": "Manny is Awesome",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "npm package for importing @mannynotfound into your website.",
+  "main": "./src/js/index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Manny is definitely awesome\""
+    "dev": "webpack-dev-server --config webpack.dev.config.js --mode development --open",
+    "build": "webpack --config webpack.build.config.js --progress --mode production",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/mannynotfound/manny.git"
   },
-  "keywords": [
-    "Manny",
-    "Awesome",
-    "Cool",
-    "Bacon",
-    "Super"
-  ],
-  "author": "Manny 404",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/mannynotfound/manny/issues"
+  "author": "@mannynotfound",
+  "license": "WTFPL",
+  "dependencies": {
+    "three": "0.97.0"
   },
-  "homepage": "https://github.com/mannynotfound/manny"
+  "devDependencies": {
+    "babel-core": "6.26.3",
+    "babel-loader": "7.1.4",
+    "babel-plugin-transform-object-rest-spread": "6.26.0",
+    "babel-preset-env": "1.6.1",
+    "clean-webpack-plugin": "0.1.19",
+    "copy-webpack-plugin": "^4.5.4",
+    "html-webpack-plugin": "3.2.0",
+    "webpack": "4.7.0",
+    "webpack-cli": "2.0.0",
+    "webpack-dev-server": "3.1.4"
+  },
+  "keywords": [
+    "manny",
+    "three.js"
+  ],
+  "homepage": "http://art404.com"
 }
