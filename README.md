@@ -8,7 +8,7 @@ npm package for importing @mannynotfound into your website.
 npm install manny
 ```
 
-```
+```js
 import Manny from 'manny';
 
 const manny = new Manny({
