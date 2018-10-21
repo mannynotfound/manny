@@ -1,5 +1,9 @@
 import THREE from './vendor/three-shim';
 
+const MANNY_URL = process.env.NODE_ENV === 'production'
+  ? 'https://s3.amazonaws.com/mannynotfound/Manny.fbx'
+  : 'assets/models/Manny.fbx';
+
 export default class Application {
   constructor(opts = {}) {
     this.width = window.innerWidth;
@@ -143,7 +147,7 @@ export default class Application {
     };
 
     const loader = new THREE.FBXLoader(manager);
-    loader.load('assets/models/Manny.fbx', onSuccessCallback, onProgressCallback, onErrorCallback);
+    loader.load(MANNY_URL, onSuccessCallback, onProgressCallback, onErrorCallback);
   }
 
   setupControls() {
