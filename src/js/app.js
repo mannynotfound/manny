@@ -1,7 +1,7 @@
 import THREE from './vendor/three-shim';
 
 const MANNY_URL = process.env.NODE_ENV === 'production'
-  ? 'http://d2tm2f4d5v0kas.cloudfront.net/Manny.fbx'
+  ? 'https://d2tm2f4d5v0kas.cloudfront.net/Manny.fbx'
   : 'assets/models/Manny.fbx';
 
 export default class Application {
