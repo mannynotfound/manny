@@ -1,7 +1,7 @@
-const Application = require('./app').default;
-const Detector = require('./vendor/Detector');
+import Application from './app';
+import * as Detector from './vendor/Detector';
 
-class Manny {
+export default class Manny {
   constructor(options = {}) {
     const domSelector = options.container || 'body';
     this.container = document.querySelector(domSelector);
@@ -18,5 +18,3 @@ class Manny {
     console.log('manny scene initiated:', app);
   }
 }
-
-module.exports = Manny;
