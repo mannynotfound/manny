@@ -1,6 +1,6 @@
 {
   "name": "manny",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "npm package for importing @mannynotfound into your website.",
   "main": "./lib/manny.min.js",
   "scripts": {
