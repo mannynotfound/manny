@@ -27,8 +27,6 @@ export default class Application {
     this.setupControls();
     this.setupRenderer();
     this.render();
-
-    //window.addEventListener( 'resize', onWindowResize, false);
   }
 
   setupScene() {
@@ -60,11 +58,9 @@ export default class Application {
     this.renderer = new THREE.WebGLRenderer( { antialias: true } );
     this.renderer.setPixelRatio(window.devicePixelRatio || 1);
     this.renderer.setSize(this.width, this.height);
-    /*
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.shadowMap.needsUpdate = true;
-    */
+    //this.renderer.shadowMap.enabled = true;
+    //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    //this.renderer.shadowMap.needsUpdate = true;
 
     this.container.appendChild(this.renderer.domElement);
 
@@ -92,7 +88,7 @@ export default class Application {
     hemisphereLight.position.set(0, 200, 0);
     this.scene.add(hemisphereLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
     directionalLight.position.set(0, 200, 100);
     directionalLight.castShadow = true;
     directionalLight.shadow.camera.top = 180;
@@ -111,16 +107,23 @@ export default class Application {
     mesh.rotation.x = -Math.PI / 2;
 
     this.scene.add(mesh);
+
+
+    const grid = new THREE.GridHelper(2000, 75, 0x888888, 0x888888);
+    grid.material.opacity = 0.5;
+    grid.material.transparent = true;
+    this.scene.add(grid);
   }
 
   setupModel() {
     const manager = new THREE.LoadingManager();
-    const loader = new THREE.FBXLoader(manager);
-    const scene = this.scene;
+    manager.onError = function(url) {
+      console.log('Some error at ', url);
+    };
 
-    loader.load('assets/models/Bellydancing.fbx', (object) => {
-      console.log('Loaded Asset:', object);
+    const onSuccessCallback = (object) => {
       object.mixer = new THREE.AnimationMixer(object);
+      object.name = 'manny';
       this.mixers.push(object.mixer);
       const action = object.mixer.clipAction(object.animations[0]);
       action.play();
@@ -130,12 +133,17 @@ export default class Application {
           child.receiveShadow = true;
         }
       });
-      scene.add(object);
-    });
+      console.log('Loaded Asset:', object);
+      this.scene.add(object);
+    }
 
-    manager.onError = function(url) {
-      console.log('Some error at ', url);
+    const onProgressCallback = () => {};
+    const onErrorCallback = (e) => {
+        console.error("JSONLoader failed! because of error ", e);
     };
+
+    const loader = new THREE.FBXLoader(manager);
+    loader.load('assets/models/Manny.fbx', onSuccessCallback, onProgressCallback, onErrorCallback);
   }
 
   setupControls() {
