@@ -1,5 +1,5 @@
-import Application from './app';
-import * as Detector from './vendor/Detector';
+const Application = require('./app').default;
+const Detector = require('./vendor/Detector');
 
 class Manny {
   constructor(options = {}) {
