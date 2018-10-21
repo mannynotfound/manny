@@ -14,6 +14,12 @@ import Manny from 'manny';
 const manny = new Manny({
     container: '#container', // dom selector, defaults to body
 });
+
+// play all animations on loop
+manny.play();
+
+// play specific animation on loop
+manny.play('bellydance');
 ```
 
 ### Running Locally

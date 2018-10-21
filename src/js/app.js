@@ -4,22 +4,21 @@ const MANNY_URL = process.env.NODE_ENV === 'production'
   ? 'https://d2tm2f4d5v0kas.cloudfront.net/Manny.fbx'
   : 'assets/models/Manny.fbx';
 
+const normalizeName = (name) => name.replace('Armature|', '').toLowerCase();
+
 export default class Application {
   constructor(opts = {}) {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.mixers = [];
+    this.play = this.play.bind(this)
 
     if (opts.container) {
-      console.log('SETTING CONTAINER ', opts.container);
       this.container = opts.container;
     } else {
       const div = Application.createContainer();
       document.body.appendChild(div);
       this.container = div;
     }
-
-    this.init();
   }
 
   init() {
@@ -42,8 +41,12 @@ export default class Application {
   }
 
   render() {
-    this.controls && this.controls.update();
-    this.mixers.forEach(mixer => mixer.update(this.clock.getDelta()));
+    if (this.controls) {
+      this.controls.update();
+    }
+    if (this.manny3D && this.manny3D.mixer) {
+      this.manny3D.mixer.update(this.clock.getDelta());
+    }
     this.renderer.render(this.scene, this.camera);
     // when render is invoked via requestAnimationFrame(this.render) there is
     // no 'this', so either we bind it explicitly or use an es6 arrow function.
@@ -62,10 +65,6 @@ export default class Application {
     this.renderer = new THREE.WebGLRenderer( { antialias: true } );
     this.renderer.setPixelRatio(window.devicePixelRatio || 1);
     this.renderer.setSize(this.width, this.height);
-    //this.renderer.shadowMap.enabled = true;
-    //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    //this.renderer.shadowMap.needsUpdate = true;
-
     this.container.appendChild(this.renderer.domElement);
 
     window.addEventListener('resize', () => {
@@ -92,7 +91,7 @@ export default class Application {
     hemisphereLight.position.set(0, 200, 0);
     this.scene.add(hemisphereLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.25);
     directionalLight.position.set(0, 200, 100);
     directionalLight.castShadow = true;
     directionalLight.shadow.camera.top = 180;
@@ -112,38 +111,89 @@ export default class Application {
 
     this.scene.add(mesh);
 
-
     const grid = new THREE.GridHelper(2000, 75, 0x888888, 0x888888);
     grid.material.opacity = 0.5;
     grid.material.transparent = true;
     this.scene.add(grid);
   }
 
-  setupModel() {
-    const manager = new THREE.LoadingManager();
-    manager.onError = function(url) {
-      console.log('Some error at ', url);
+  /* IDK how to consistently sort animations in Blender
+   * so this is a temp hack to get my preferred order sorry
+   */
+  sortAnimations() {
+    const order = ['wave', 'bellydance', 'samba'];
+
+    const getScore = (animationName) => {
+      animationName = normalizeName(animationName);
+      return order.includes((animationName))
+        ? order.length - order.indexOf(animationName)
+        : 0;
     };
 
+    this.manny3D.animations.sort((a, b) => getScore(b.name) - getScore(a.name));
+  }
+
+  playNextClip(animation) {
+    const clip = animation.action.getClip();
+    const clipIndex = this.manny3D.animations.indexOf(clip);
+    const animationsLength = this.manny3D.animations.length;
+    const nextClipIndex = clipIndex + 1 === animationsLength ? 0 : clipIndex + 1;
+    const nextClip = this.manny3D.animations[nextClipIndex];
+    const nextAction = this.manny3D.mixer.clipAction(nextClip).reset().setLoop(THREE.LoopOnce);
+    this.manny3D.mixer.stopAllAction();
+    this.currentAction.crossFadeTo(nextAction, 0).play();
+  }
+
+  play(animationName) {
+    if (typeof animationName === 'undefined') {
+      this.setupAnimationMixer();
+      return;
+    }
+
+    animationName = normalizeName(animationName);
+    const animationMatch = this.manny3D.animations.find(animation => (
+      normalizeName(animation.name) === animationName
+    ));
+
+    if (animationMatch) {
+      this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
+      const nextAction = this.manny3D.mixer.clipAction(animationMatch).reset().setLoop(THREE.LoopRepeat);
+      this.manny3D.mixer.stopAllAction();
+      this.currentAction.crossFadeTo(nextAction, 0).play();
+    }
+  }
+
+  setupAnimationMixer() {
+    this.sortAnimations();
+    this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
+    this.currentAction = this.manny3D.mixer.clipAction(this.manny3D.animations[0]);
+    this.currentAction.setLoop(THREE.LoopOnce);
+    this.currentAction.play();
+
+    this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
+    this.manny3D.mixer.addEventListener('finished', this.playNextClip.bind(this));
+  }
+
+  setupModel() {
+    const manager = new THREE.LoadingManager();
+    manager.onError = (url) => console.error('Manager failed at ', url);
+
+    const onProgressCallback = () => {};
+    const onErrorCallback = (e) => console.error('FBXLoader failed! ', e);
+
     const onSuccessCallback = (object) => {
-      object.mixer = new THREE.AnimationMixer(object);
-      object.name = 'manny';
-      this.mixers.push(object.mixer);
-      const action = object.mixer.clipAction(object.animations[0]);
-      action.play();
-      object.traverse(child => {
+      this.manny3D = object;
+      this.manny3D.name = 'manny';
+      this.play();
+
+      this.manny3D.traverse(child => {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
         }
       });
-      console.log('Loaded Asset:', object);
-      this.scene.add(object);
-    }
 
-    const onProgressCallback = () => {};
-    const onErrorCallback = (e) => {
-        console.error("JSONLoader failed! because of error ", e);
+      this.scene.add(this.manny3D);
     };
 
     const loader = new THREE.FBXLoader(manager);
