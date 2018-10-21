@@ -7,7 +7,10 @@ module.exports = {
 
   output: {
     path: path.join(__dirname, 'lib'),
-    filename: 'manny.min.js'
+    filename: 'manny.min.js',
+    library: 'manny',
+    libraryTarget: 'umd',
+    umdNamedDefine: true
   },
 
   module: {
