@@ -149,8 +149,10 @@ export default class Application {
   }
 
   play(animationName) {
-    if (!this.manny3D) {
-      this.playCache = animationName;
+    if (!this.manny3D || !this.manny3D.mixer) {
+      if (animationName) {
+        this.playCache = animationName;
+      }
       return;
     }
 
