@@ -5,5 +5,6 @@ import Manny from './index';
   const manny = new Manny({
       container: "#canvas-container"
   });
+  manny.play('samba');
   window.manny = manny;
 })();

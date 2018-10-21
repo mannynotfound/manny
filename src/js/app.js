@@ -149,19 +149,25 @@ export default class Application {
   }
 
   play(animationName) {
-    if (!this.manny3D || !this.manny3D.mixer) {
+    if (!this.manny3D) {
       if (animationName) {
         this.playCache = animationName;
       }
       return;
     }
 
-    if (typeof animationName === 'undefined' && !this.playCache) {
-      this.setupAnimationMixer();
+    if (!this.manny3D.mixer) {
+      this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
+    }
+
+    if (this.playCache) {
+      animationName = String(this.playCache);
+      this.playCache = '';
+    }
+
+    if (typeof animationName === 'undefined') {
+      this.playAllClips();
       return;
-    } else if (this.playCache) {
-        animationName = String(this.playCache);
-        this.playCache = '';
     }
 
     animationName = normalizeName(animationName);
@@ -173,13 +179,17 @@ export default class Application {
       this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
       const nextAction = this.manny3D.mixer.clipAction(animationMatch).reset().setLoop(THREE.LoopRepeat);
       this.manny3D.mixer.stopAllAction();
-      this.currentAction.crossFadeTo(nextAction, 0).play();
+      if (this.currentAction) {
+        this.currentAction.crossFadeTo(nextAction, 0).play();
+      } else {
+        this.currentAction = nextAction;
+        this.currentAction.play()
+      }
     }
   }
 
-  setupAnimationMixer() {
+  playAllClips() {
     this.sortAnimations();
-    this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
     this.currentAction = this.manny3D.mixer.clipAction(this.manny3D.animations[0]);
     this.currentAction.setLoop(THREE.LoopOnce);
     this.currentAction.play();
