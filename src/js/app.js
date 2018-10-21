@@ -121,6 +121,10 @@ export default class Application {
    * so this is a temp hack to get my preferred order sorry
    */
   sortAnimations() {
+    if (!this.manny3D) {
+      return;
+    }
+
     const order = ['wave', 'bellydance', 'samba'];
 
     const getScore = (animationName) => {
@@ -145,9 +149,17 @@ export default class Application {
   }
 
   play(animationName) {
-    if (typeof animationName === 'undefined') {
+    if (!this.manny3D) {
+      this.playCache = animationName;
+      return;
+    }
+
+    if (typeof animationName === 'undefined' && !this.playCache) {
       this.setupAnimationMixer();
       return;
+    } else if (this.playCache) {
+        animationName = String(this.playCache);
+        this.playCache = '';
     }
 
     animationName = normalizeName(animationName);
