@@ -2,6 +2,10 @@
 
 npm package for importing @mannynotfound into your website.
 
+### Live Demo
+
+[https://mannynotfound.glitch.me/](https://mannynotfound.glitch.me/)
+
 ### Usage
 
 ```bash

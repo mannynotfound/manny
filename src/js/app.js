@@ -6,16 +6,23 @@ const MANNY_URL = process.env.NODE_ENV === 'production'
 
 const normalizeName = (name) => name.replace('Armature|', '').toLowerCase();
 
+const createContainer = () => {
+    const div = document.createElement('div');
+    div.setAttribute('id', 'canvas-container');
+    div.setAttribute('class', 'container');
+    return div;
+};
+
 export default class Application {
-  constructor(opts = {}) {
+  constructor(options = {}) {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.play = this.play.bind(this)
+    this.play = this.play.bind(this);
 
-    if (opts.container) {
-      this.container = opts.container;
+    if (options.container) {
+      this.container = options.container;
     } else {
-      const div = Application.createContainer();
+      const div = createContainer();
       document.body.appendChild(div);
       this.container = div;
     }
@@ -35,8 +42,7 @@ export default class Application {
   setupScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xf6f6f6);
-    this.fog = new THREE.Fog(0xf6f6f6, 500, 1000);
-    this.scene.fog = this.fog;
+    this.scene.fog = new THREE.Fog(0xf6f6f6, 500, 1000);
     this.clock = new THREE.Clock();
   }
 
@@ -44,21 +50,13 @@ export default class Application {
     if (this.controls) {
       this.controls.update();
     }
+
     if (this.manny3D && this.manny3D.mixer) {
       this.manny3D.mixer.update(this.clock.getDelta());
     }
-    this.renderer.render(this.scene, this.camera);
-    // when render is invoked via requestAnimationFrame(this.render) there is
-    // no 'this', so either we bind it explicitly or use an es6 arrow function.
-    // requestAnimationFrame(this.render.bind(this));
-    requestAnimationFrame(() => this.render());
-  }
 
-  static createContainer() {
-    const div = document.createElement('div');
-    div.setAttribute('id', 'canvas-container');
-    div.setAttribute('class', 'container');
-    return div;
+    this.renderer.render(this.scene, this.camera);
+    requestAnimationFrame(() => this.render());
   }
 
   setupRenderer() {
@@ -106,7 +104,7 @@ export default class Application {
     material.castShadow = false;
     material.receiveShadow = true;
 
-    const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry( 2000, 2000 ), material);
+    const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), material);
     mesh.rotation.x = -Math.PI / 2;
 
     this.scene.add(mesh);
@@ -204,11 +202,9 @@ export default class Application {
 
     const onProgressCallback = () => {};
     const onErrorCallback = (e) => console.error('FBXLoader failed! ', e);
-
     const onSuccessCallback = (object) => {
       this.manny3D = object;
       this.manny3D.name = 'manny';
-      this.play();
 
       this.manny3D.traverse(child => {
         if (child.isMesh) {
@@ -218,6 +214,7 @@ export default class Application {
       });
 
       this.scene.add(this.manny3D);
+      this.play();
     };
 
     const loader = new THREE.FBXLoader(manager);
