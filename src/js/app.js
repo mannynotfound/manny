@@ -53,7 +53,7 @@ export default class Application {
         font-family: courier, "Courier New", monospace; text-align: center;`;
     const text = document.createElement('p');
     text.id = 'loader-text';
-    text.innerText = 'Loading Manny...';
+    text.innerText = 'loading manny...';
     wrap.appendChild(text);
     this.container.appendChild(wrap);
 
