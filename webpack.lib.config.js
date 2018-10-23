@@ -4,9 +4,10 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 delete baseConfig.output.umdNamedDefine;
 
+baseConfig.entry = './src/js/index-lib.js';
 baseConfig.output.libraryTarget = 'var';
 baseConfig.output.library = 'Manny';
-baseConfig.output.filename = 'manny.lib.js'
+baseConfig.output.filename = 'manny.lib.js';
 baseConfig.plugins = [
   new CleanWebpackPlugin(['lib'], {
     root: __dirname,
