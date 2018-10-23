@@ -5,9 +5,9 @@
   "main": "./lib/manny.js",
   "scripts": {
     "dev": "webpack-dev-server --config webpack.dev.config.js --mode development --open",
-    "build": "NODE_ENV=production webpack --config webpack.build.config.js --progress --mode production",
-    "build:lib": "NODE_ENV=production webpack --config webpack.lib.config.js --progress --mode production",
-    "prepublish": "npm run build && npm run build:lib"
+    "build": "npm run build:umd && npm run build:lib",
+    "build:umd": "NODE_ENV=production webpack --config webpack.build.config.js --progress --mode production",
+    "build:lib": "NODE_ENV=production webpack --config webpack.lib.config.js --progress --mode production"
   },
   "repository": {
     "type": "git",

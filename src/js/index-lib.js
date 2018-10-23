@@ -1,2 +1,2 @@
-const Manny = require('./index');
-module.exports = Manny.default;
+const Manny = require('./index').default;
+module.exports = Manny;
