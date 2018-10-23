@@ -228,6 +228,7 @@ export default class Application {
     }
 
     this.sortAnimations();
+    this.manny3D.mixer.stopAllAction();
     this.currentAction = this.manny3D.mixer.clipAction(this.manny3D.animations[0]);
     this.currentAction.setLoop(THREE.LoopOnce);
     this.currentAction.play();

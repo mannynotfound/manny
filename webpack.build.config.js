@@ -7,7 +7,7 @@ module.exports = {
 
   output: {
     path: path.join(__dirname, 'lib'),
-    filename: 'manny.min.js',
+    filename: 'manny.js',
     library: 'manny',
     libraryTarget: 'umd',
     umdNamedDefine: true
@@ -29,6 +29,7 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(['lib'], {
       root: __dirname,
+      exclude: ['manny.lib.js'],
       verbose: true
     }),
     new webpack.DefinePlugin({
