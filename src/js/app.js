@@ -32,6 +32,7 @@ export default class Application {
   }
 
   init() {
+    this.showLoader();
     this.setupScene();
     this.setupCamera();
     this.setupLights();
@@ -40,6 +41,35 @@ export default class Application {
     this.setupControls();
     this.setupRenderer();
     this.render();
+  }
+
+  showLoader() {
+    // css / html in js before it was cool
+    const wrap = document.createElement('div');
+    wrap.id = 'loader';
+    wrap.style.cssText = `position: fixed; width: 100%; height: 100%;
+        display: flex; justify-content: center; align-items: center;
+        z-index: 100000; color: black; font-weight: bold; font-size: 2.250rem;
+        font-family: courier, "Courier New", monospace; text-align: center;`;
+    const text = document.createElement('p');
+    text.id = 'loader-text';
+    text.innerText = 'Loading Manny...';
+    wrap.appendChild(text);
+    this.container.appendChild(wrap);
+
+    text.animate([
+      { opacity: 1 },
+      { opacity: 0.25 }
+    ], {
+      duration: 500,
+      direction: 'alternate',
+      iterations: Infinity,
+    });
+  }
+
+  removeLoader() {
+    const loader = document.getElementById('loader');
+    loader.parentNode.removeChild(loader);
   }
 
   setupScene() {
@@ -108,8 +138,20 @@ export default class Application {
     const manager = new THREE.LoadingManager();
     manager.onError = (url) => console.error('Manager failed at ', url);
 
-    const onProgressCallback = () => {};
-    const onErrorCallback = (e) => console.error('FBXLoader failed! ', e);
+    const onProgressCallback = (progress) => {
+      const percentage = Math.round(100 * (progress.loaded / progress.total));
+      const loaderText = document.getElementById('loader-text');
+      if (loaderText) {
+        loaderText.innerText = `loading manny... ${percentage}%`
+      }
+    };
+    const onErrorCallback = (e) => {
+      const loaderText = document.getElementById('loader-text');
+      if (loaderText) {
+        console.error('FBXLoader failed! ', e);
+        loaderText.innerText = `failed to load manny\n${e}`;
+      }
+    };
     const onSuccessCallback = (object) => {
       this.manny3D = object;
       this.manny3D.name = 'manny';
@@ -127,6 +169,7 @@ export default class Application {
       } else {
         this.do(this.doCache);
       }
+      this.removeLoader();
     };
 
     const loader = new THREE.FBXLoader(manager);
