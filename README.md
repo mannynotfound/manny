@@ -19,12 +19,17 @@ const manny = new Manny({
     container: '#container', // dom selector, defaults to body
 });
 
-// play all animations on loop
-manny.play();
+// do specific action on loop
+manny.do('bellydance');
 
-// play specific animation on loop
-manny.play('bellydance');
+// do all actions on loop
+manny.doTheMost();
 ```
+
+### Actions
+
+manny is using the [mixamo](https://mixamo.com) rig and will work with any animation in their library. by default, the manny
+package comes with `wave`, `bellydance` and `samba`.
 
 ### Running Locally
 

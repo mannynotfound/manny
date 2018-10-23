@@ -13,11 +13,14 @@ const createContainer = () => {
     return div;
 };
 
+const ACTIONS = ['wave', 'bellydance', 'samba'];
+
 export default class Application {
   constructor(options = {}) {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.play = this.play.bind(this);
+    this.do = this.do.bind(this);
+    this.doTheMost = this.doTheMost.bind(this);
 
     if (options.container) {
       this.container = options.container;
@@ -46,19 +49,6 @@ export default class Application {
     this.clock = new THREE.Clock();
   }
 
-  render() {
-    if (this.controls) {
-      this.controls.update();
-    }
-
-    if (this.manny3D && this.manny3D.mixer) {
-      this.manny3D.mixer.update(this.clock.getDelta());
-    }
-
-    this.renderer.render(this.scene, this.camera);
-    requestAnimationFrame(() => this.render());
-  }
-
   setupRenderer() {
     this.renderer = new THREE.WebGLRenderer( { antialias: true } );
     this.renderer.setPixelRatio(window.devicePixelRatio || 1);
@@ -76,8 +66,7 @@ export default class Application {
 
   setupCamera() {
     const fov = 45;
-    const aspect = this.width / this.height;
-    const near = 1;
+    const aspect = this.width / this.height; const near = 1;
     const far = 2000;
 
     this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
@@ -115,87 +104,6 @@ export default class Application {
     this.scene.add(grid);
   }
 
-  /* IDK how to consistently sort animations in Blender
-   * so this is a temp hack to get my preferred order sorry
-   */
-  sortAnimations() {
-    if (!this.manny3D) {
-      return;
-    }
-
-    const order = ['wave', 'bellydance', 'samba'];
-
-    const getScore = (animationName) => {
-      animationName = normalizeName(animationName);
-      return order.includes((animationName))
-        ? order.length - order.indexOf(animationName)
-        : 0;
-    };
-
-    this.manny3D.animations.sort((a, b) => getScore(b.name) - getScore(a.name));
-  }
-
-  playNextClip(animation) {
-    const clip = animation.action.getClip();
-    const clipIndex = this.manny3D.animations.indexOf(clip);
-    const animationsLength = this.manny3D.animations.length;
-    const nextClipIndex = clipIndex + 1 === animationsLength ? 0 : clipIndex + 1;
-    const nextClip = this.manny3D.animations[nextClipIndex];
-    const nextAction = this.manny3D.mixer.clipAction(nextClip).reset().setLoop(THREE.LoopOnce);
-    this.manny3D.mixer.stopAllAction();
-    this.currentAction.crossFadeTo(nextAction, 0).play();
-  }
-
-  play(animationName) {
-    if (!this.manny3D) {
-      if (animationName) {
-        this.playCache = animationName;
-      }
-      return;
-    }
-
-    if (!this.manny3D.mixer) {
-      this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
-    }
-
-    if (this.playCache) {
-      animationName = String(this.playCache);
-      this.playCache = '';
-    }
-
-    if (typeof animationName === 'undefined') {
-      this.playAllClips();
-      return;
-    }
-
-    animationName = normalizeName(animationName);
-    const animationMatch = this.manny3D.animations.find(animation => (
-      normalizeName(animation.name) === animationName
-    ));
-
-    if (animationMatch) {
-      this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
-      const nextAction = this.manny3D.mixer.clipAction(animationMatch).reset().setLoop(THREE.LoopRepeat);
-      this.manny3D.mixer.stopAllAction();
-      if (this.currentAction) {
-        this.currentAction.crossFadeTo(nextAction, 0).play();
-      } else {
-        this.currentAction = nextAction;
-        this.currentAction.play()
-      }
-    }
-  }
-
-  playAllClips() {
-    this.sortAnimations();
-    this.currentAction = this.manny3D.mixer.clipAction(this.manny3D.animations[0]);
-    this.currentAction.setLoop(THREE.LoopOnce);
-    this.currentAction.play();
-
-    this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
-    this.manny3D.mixer.addEventListener('finished', this.playNextClip.bind(this));
-  }
-
   setupModel() {
     const manager = new THREE.LoadingManager();
     manager.onError = (url) => console.error('Manager failed at ', url);
@@ -214,7 +122,11 @@ export default class Application {
       });
 
       this.scene.add(this.manny3D);
-      this.play();
+      if (!this.doCache || this.doCache === 'theMost') {
+        this.doTheMost();
+      } else {
+        this.do(this.doCache);
+      }
     };
 
     const loader = new THREE.FBXLoader(manager);
@@ -225,5 +137,102 @@ export default class Application {
     this.controls = new THREE.OrbitControls(this.camera);
     this.controls.target.set(0, 100, 0);
     this.controls.update();
+  }
+
+  /* IDK how to consistently sort animations in Blender
+   * so this is a temp hack to get my preferred order sorry
+   */
+  sortAnimations() {
+    if (!this.manny3D) {
+      return;
+    }
+
+    const getScore = (actionName) => {
+      actionName = normalizeName(actionName);
+      return ACTIONS.includes((actionName))
+        ? ACTIONS.length - ACTIONS.indexOf(actionName)
+        : 0;
+    };
+
+    this.manny3D.animations.sort((a, b) => getScore(b.name) - getScore(a.name));
+  }
+
+  render() {
+    if (this.controls) {
+      this.controls.update();
+    }
+
+    if (this.manny3D && this.manny3D.mixer) {
+      this.manny3D.mixer.update(this.clock.getDelta());
+    }
+
+    this.renderer.render(this.scene, this.camera);
+    requestAnimationFrame(() => this.render());
+  }
+
+  playNextClip(animation) {
+    const clip = animation.action.getClip();
+    const clipIndex = this.manny3D.animations.indexOf(clip);
+    const animationsLength = this.manny3D.animations.length;
+    const nextClipIndex = clipIndex + 1 === animationsLength ? 0 : clipIndex + 1;
+    const nextClip = this.manny3D.animations[nextClipIndex];
+    const nextAction = this.manny3D.mixer.clipAction(nextClip).reset().setLoop(THREE.LoopOnce);
+    this.manny3D.mixer.stopAllAction();
+    this.currentAction.crossFadeTo(nextAction, 0).play();
+  }
+
+  do(actionName) {
+    if (!actionName) {
+      console.error('Please provide an action to perform.')
+    }
+
+    if (!this.manny3D) {
+      if (actionName) {
+        this.doCache = actionName;
+      }
+      return;
+    }
+
+    if (!this.manny3D.mixer) {
+      this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
+    }
+
+    actionName = normalizeName(actionName);
+    const animationMatch = this.manny3D.animations.find(animation => (
+      normalizeName(animation.name) === actionName
+    ));
+
+    if (animationMatch) {
+      this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
+      const nextAction = this.manny3D.mixer.clipAction(animationMatch).reset().setLoop(THREE.LoopRepeat);
+      this.manny3D.mixer.stopAllAction();
+      if (this.currentAction) {
+        this.currentAction.crossFadeTo(nextAction, 0).play();
+      } else {
+        this.currentAction = nextAction;
+        this.currentAction.play()
+      }
+    } else {
+      console.warn(`Couldnt find action ${actionName}, use one of ${ACTIONS.join(', ')}`)
+    }
+  }
+
+  doTheMost() {
+    if (!this.manny3D) {
+      this.doCache = 'theMost';
+      return;
+    }
+
+    if (!this.manny3D.mixer) {
+      this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
+    }
+
+    this.sortAnimations();
+    this.currentAction = this.manny3D.mixer.clipAction(this.manny3D.animations[0]);
+    this.currentAction.setLoop(THREE.LoopOnce);
+    this.currentAction.play();
+
+    this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
+    this.manny3D.mixer.addEventListener('finished', this.playNextClip.bind(this));
   }
 }
