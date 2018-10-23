@@ -8,8 +8,9 @@ module.exports = {
   output: {
     path: path.join(__dirname, 'lib'),
     filename: 'manny.js',
-    library: 'manny',
+    library: 'Manny',
     libraryTarget: 'umd',
+    libraryExport: 'default',
     umdNamedDefine: true
   },
 

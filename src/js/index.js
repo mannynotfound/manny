@@ -1,7 +1,7 @@
 import Application from './app';
 import * as Detector from './vendor/Detector';
 
-export default class Manny {
+class Manny {
   constructor(options = {}) {
     const domSelector = options.container || 'body';
     this.container = document.querySelector(domSelector);
@@ -16,3 +16,5 @@ export default class Manny {
     return app;
   }
 }
+
+export default Manny;
