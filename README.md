@@ -8,6 +8,8 @@ npm package for importing @mannynotfound into your website.
 
 ### Usage
 
+#### As a module
+
 ```bash
 npm install manny
 ```
@@ -24,6 +26,22 @@ manny.do('bellydance');
 
 // do all actions on loop
 manny.doTheMost();
+```
+
+#### As a library
+
+```html
+<html>
+    <head></head>
+    <body>
+        <div id="container"></div>
+        <script src="https://cdn.jsdelivr.net/npm/manny/lib/manny.js" type="text/javascript"></script>
+        <script>
+            var manny = new Manny({ container: '#container' });
+            manny.doTheMost();
+        </script>
+    </body>
+</html>
 ```
 
 ### Actions
