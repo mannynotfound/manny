@@ -19,6 +19,7 @@ import Manny from 'manny';
 
 const manny = new Manny({
     container: '#container', // dom selector, defaults to body
+    useBackground: true, // renders a default grid + fog, defaults to false (transparent)
 });
 
 // do specific action on loop
