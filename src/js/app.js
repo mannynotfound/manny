@@ -7,10 +7,10 @@ const MANNY_URL = process.env.NODE_ENV === 'production'
 const normalizeName = (name) => name.replace('Armature|', '').toLowerCase();
 
 const createContainer = () => {
-    const div = document.createElement('div');
-    div.setAttribute('id', 'canvas-container');
-    div.setAttribute('class', 'container');
-    return div;
+  const div = document.createElement('div');
+  div.setAttribute('id', 'canvas-container');
+  div.setAttribute('class', 'container');
+  return div;
 };
 
 const ACTIONS = ['wave', 'bellydance', 'samba'];
@@ -29,6 +29,7 @@ export default class Application {
       document.body.appendChild(div);
       this.container = div;
     }
+    this.useBackground = options.useBackground;
   }
 
   init() {
@@ -36,7 +37,7 @@ export default class Application {
     this.setupScene();
     this.setupCamera();
     this.setupLights();
-    this.setupFloor();
+    this.useBackground && this.setupFloor();
     this.setupModel();
     this.setupControls();
     this.setupRenderer();
@@ -48,9 +49,9 @@ export default class Application {
     const wrap = document.createElement('div');
     wrap.id = 'loader';
     wrap.style.cssText = `position: fixed; width: 100%; height: 100%;
-        display: flex; justify-content: center; align-items: center;
-        z-index: 100000; color: black; font-weight: bold; font-size: 2.250rem;
-        font-family: courier, "Courier New", monospace; text-align: center;`;
+      display: flex; justify-content: center; align-items: center;
+      z-index: 100000; color: black; font-weight: bold; font-size: 2.250rem;
+      font-family: courier, "Courier New", monospace; text-align: center;`;
     const text = document.createElement('p');
     text.id = 'loader-text';
     text.innerText = 'loading manny...';
@@ -74,15 +75,22 @@ export default class Application {
 
   setupScene() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf6f6f6);
-    this.scene.fog = new THREE.Fog(0xf6f6f6, 500, 1000);
     this.clock = new THREE.Clock();
+    if (this.useBackground) {
+      this.scene.background = new THREE.Color(0xf6f6f6);
+      this.scene.fog = new THREE.Fog(0xf6f6f6, 500, 1000);
+    }
   }
 
   setupRenderer() {
-    this.renderer = new THREE.WebGLRenderer( { antialias: true } );
+    const renderOptions = {
+      antialias: true,
+      alpha: !this.useBackground,
+    };
+    this.renderer = new THREE.WebGLRenderer(renderOptions);
     this.renderer.setPixelRatio(window.devicePixelRatio || 1);
     this.renderer.setSize(this.width, this.height);
+    this.useBackground && this.renderer.setClearColor(0x000000, 0);
     this.container.appendChild(this.renderer.domElement);
 
     window.addEventListener('resize', () => {

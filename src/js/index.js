@@ -4,14 +4,15 @@ import * as Detector from './vendor/Detector';
 class Manny {
   constructor(options = {}) {
     const domSelector = options.container || 'body';
-    this.container = document.querySelector(domSelector);
+    const container = document.querySelector(domSelector);
     if (!Detector.webgl) {
       const warning = Detector.getWebGLErrorMessage();
-      this.container.appendChild(warning);
+      container.appendChild(warning);
       return null;
     }
 
-    const app = new Application({ container: this.container });
+    const useBackground = options.useBackground || false;
+    const app = new Application({ container, useBackground });
     app.init();
     return app;
   }
