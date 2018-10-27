@@ -46,6 +46,10 @@ export default class Application {
     text.id = 'loader-text';
     text.innerText = 'loading...';
     wrap.appendChild(text);
+    const containerStyle = this.container.style.position;
+    if (!containerStyle || containerStyle === 'static') {
+      this.container.style.position = 'relative';
+    }
     this.container.appendChild(wrap);
 
     text.animate([
