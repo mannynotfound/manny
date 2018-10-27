@@ -21,7 +21,6 @@ export default class Application {
   }
 
   init() {
-    this.showLoader();
     this.setupScene();
     this.setupCamera();
     this.setupLights();
@@ -29,6 +28,7 @@ export default class Application {
     this.loadManny();
     this.setupControls();
     this.setupRenderer();
+    this.showLoader();
     this.render();
   }
 
@@ -36,8 +36,10 @@ export default class Application {
     // css / html in js before it was cool
     const wrap = document.createElement('div');
     wrap.id = 'loader';
-    wrap.style.cssText = `position: fixed; width: 100%; height: 100%;
-      display: flex; justify-content: center; align-items: center;
+    const width = this.renderer.domElement.clientWidth;
+    const height = this.renderer.domElement.clientHeight;
+    wrap.style.cssText = `position: absolute; width: ${width}px; height: ${height}px;
+      top: 0; left: 0; display: flex; justify-content: center; align-items: center;
       z-index: 100000; color: black; font-weight: bold; font-size: 2.250rem;
       font-family: courier, "Courier New", monospace; text-align: center;`;
     const text = document.createElement('p');
