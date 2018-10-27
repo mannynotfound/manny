@@ -2,11 +2,13 @@
 
 npm package for importing @mannynotfound into your website.
 
-### Live Demo
+## Live Demo
+----
 
 [https://mannynotfound.glitch.me/](https://mannynotfound.glitch.me/)
 
-### Usage
+## Usage
+----
 
 #### As a module
 
@@ -17,9 +19,10 @@ npm install manny
 ```js
 import Manny from 'manny';
 
+// render to the DOM
 const manny = new Manny({
-    container: '#container', // dom selector, defaults to body
-    useBackground: true, // renders a default grid + fog, defaults to false (transparent)
+    container: '#container',
+    useBackground: true,
 });
 
 // do specific action on loop
@@ -45,12 +48,30 @@ manny.doTheMost();
 </html>
 ```
 
-### Actions
+#### Module options
 
-manny is using the [mixamo](https://mixamo.com) rig and will work with any animation in their library. by default, the manny
-package comes with `wave`, `bellydance` and `samba`.
+| Prop | Type | Default | Description | 
+| ---- |----- | ------- | ----------- |
+| container | string | 'body' | dom query selector for element to append manny | 
+| useBackground | boolean | false | if true, renders a white room and grid floor around manny |
 
-### Running Locally
+## Actions
+----
+
+manny is using the [mixamo](https://mixamo.com) rig and a curated portion of their animation library with convenient aliases. 
+
+By default, manny comes with `wave` and `idle`. Any other actions will be fetched from the action library cdn, added to the manny instance and start playing.
+
+```js
+manny.do('wave'); // loaded by default
+manny.do('fly'); // fetched from cdn library + applied to manny instance
+```
+
+For a full list of available animations, [check the library fixture.](src/js/fixtures/library.json)
+
+## Running Locally
+----
+
 
 ```
 npm run dev

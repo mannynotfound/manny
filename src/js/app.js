@@ -1,19 +1,7 @@
 import THREE from './vendor/three-shim';
-
-const MANNY_URL = process.env.NODE_ENV === 'production'
-  ? 'https://d2tm2f4d5v0kas.cloudfront.net/Manny.fbx'
-  : 'assets/models/Manny.fbx';
-
-const normalizeName = (name) => name.replace('Armature|', '').toLowerCase();
-
-const createContainer = () => {
-  const div = document.createElement('div');
-  div.setAttribute('id', 'canvas-container');
-  div.setAttribute('class', 'container');
-  return div;
-};
-
-const ACTIONS = ['wave', 'bellydance', 'samba'];
+import LIBRARY from './fixtures/library';
+import { MANNY_URL, CLIPS_HOST } from './env';
+import { createContainer, normalizeName } from './helpers';
 
 export default class Application {
   constructor(options = {}) {
@@ -38,7 +26,7 @@ export default class Application {
     this.setupCamera();
     this.setupLights();
     this.useBackground && this.setupFloor();
-    this.setupModel();
+    this.loadManny();
     this.setupControls();
     this.setupRenderer();
     this.render();
@@ -54,7 +42,7 @@ export default class Application {
       font-family: courier, "Courier New", monospace; text-align: center;`;
     const text = document.createElement('p');
     text.id = 'loader-text';
-    text.innerText = 'loading manny...';
+    text.innerText = 'loading...';
     wrap.appendChild(text);
     this.container.appendChild(wrap);
 
@@ -142,24 +130,23 @@ export default class Application {
     this.scene.add(grid);
   }
 
-  setupModel() {
-    const manager = new THREE.LoadingManager();
-    manager.onError = (url) => console.error('Manager failed at ', url);
+  loadClip(clipName) {
+    const onSuccessCallback = (object) => {
+      const clipMatch = object.animations.find(clip => {
+        return normalizeName(clip.name) === clipName;
+      })
+      if (clipMatch) {
+        this.manny3D.animations.push(clipMatch);
+        this.playClip(clipMatch);
+      }
+      this.removeLoader();
+    };
 
-    const onProgressCallback = (progress) => {
-      const percentage = Math.round(100 * (progress.loaded / progress.total));
-      const loaderText = document.getElementById('loader-text');
-      if (loaderText) {
-        loaderText.innerText = `loading manny... ${percentage}%`
-      }
-    };
-    const onErrorCallback = (e) => {
-      const loaderText = document.getElementById('loader-text');
-      if (loaderText) {
-        console.error('FBXLoader failed! ', e);
-        loaderText.innerText = `failed to load manny\n${e}`;
-      }
-    };
+    const url = `${CLIPS_HOST + clipName}.fbx`;
+    this.loadModel(url, onSuccessCallback);
+  }
+
+  loadManny() {
     const onSuccessCallback = (object) => {
       this.manny3D = object;
       this.manny3D.name = 'manny';
@@ -180,32 +167,36 @@ export default class Application {
       this.removeLoader();
     };
 
+    this.loadModel(MANNY_URL, onSuccessCallback);
+  }
+
+  loadModel(url, onSuccessCallback) {
+    const manager = new THREE.LoadingManager();
+    manager.onError = (_url) => console.error('Manager failed at ', _url);
+
+    const onProgressCallback = (progress) => {
+      const percentage = Math.round(100 * (progress.loaded / progress.total));
+      const loaderText = document.getElementById('loader-text');
+      if (loaderText) {
+        loaderText.innerText = `loading... ${percentage}%`
+      }
+    };
+    const onErrorCallback = (e) => {
+      const loaderText = document.getElementById('loader-text');
+      if (loaderText) {
+        console.error('FBXLoader failed! ', e);
+        loaderText.innerText = `failed to load \n${e}`;
+      }
+    };
+
     const loader = new THREE.FBXLoader(manager);
-    loader.load(MANNY_URL, onSuccessCallback, onProgressCallback, onErrorCallback);
+    loader.load(url, onSuccessCallback, onProgressCallback, onErrorCallback);
   }
 
   setupControls() {
     this.controls = new THREE.OrbitControls(this.camera);
     this.controls.target.set(0, 100, 0);
     this.controls.update();
-  }
-
-  /* IDK how to consistently sort animations in Blender
-   * so this is a temp hack to get my preferred order sorry
-   */
-  sortAnimations() {
-    if (!this.manny3D) {
-      return;
-    }
-
-    const getScore = (actionName) => {
-      actionName = normalizeName(actionName);
-      return ACTIONS.includes((actionName))
-        ? ACTIONS.length - ACTIONS.indexOf(actionName)
-        : 0;
-    };
-
-    this.manny3D.animations.sort((a, b) => getScore(b.name) - getScore(a.name));
   }
 
   render() {
@@ -232,14 +223,29 @@ export default class Application {
     this.currentAction.crossFadeTo(nextAction, 0).play();
   }
 
-  do(actionName) {
-    if (!actionName) {
-      console.error('Please provide an action to perform.')
+  playClip(clip) {
+    this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
+    const nextAction = this.manny3D.mixer.clipAction(clip).reset().setLoop(THREE.LoopRepeat);
+    this.manny3D.mixer.stopAllAction();
+    if (this.currentAction) {
+      this.currentAction.crossFadeTo(nextAction, 0).play();
+    } else {
+      this.currentAction = nextAction;
+      this.currentAction.play()
+    }
+  }
+
+  do(clipName) {
+    if (!clipName) {
+      console.error('Please provide an action to perform.');
+      return;
     }
 
+    clipName = normalizeName(clipName);
+
     if (!this.manny3D) {
-      if (actionName) {
-        this.doCache = actionName;
+      if (clipName) {
+        this.doCache = clipName;
       }
       return;
     }
@@ -248,24 +254,22 @@ export default class Application {
       this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
     }
 
-    actionName = normalizeName(actionName);
-    const animationMatch = this.manny3D.animations.find(animation => (
-      normalizeName(animation.name) === actionName
+    const existingClip = this.manny3D.animations.find(clip => (
+      normalizeName(clip.name) === clipName
     ));
 
-    if (animationMatch) {
-      this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
-      const nextAction = this.manny3D.mixer.clipAction(animationMatch).reset().setLoop(THREE.LoopRepeat);
-      this.manny3D.mixer.stopAllAction();
-      if (this.currentAction) {
-        this.currentAction.crossFadeTo(nextAction, 0).play();
-      } else {
-        this.currentAction = nextAction;
-        this.currentAction.play()
-      }
-    } else {
-      console.warn(`Couldnt find action ${actionName}, use one of ${ACTIONS.join(', ')}`)
+    if (existingClip) {
+      this.playClip(existingClip);
+      return;
     }
+
+    if (LIBRARY.includes(clipName)) {
+      this.loadClip(clipName);
+      return;
+    }
+
+    console.warn(`Couldnt find action ${clipName}, use one of ${LIBRARY.join(', ')}`);
+    return;
   }
 
   doTheMost() {
@@ -278,7 +282,6 @@ export default class Application {
       this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
     }
 
-    this.sortAnimations();
     this.manny3D.mixer.stopAllAction();
     this.currentAction = this.manny3D.mixer.clipAction(this.manny3D.animations[0]);
     this.currentAction.setLoop(THREE.LoopOnce);

@@ -6,6 +6,5 @@ import Manny from './index';
     container: "#canvas-container",
     useBackground: false,
   });
-  manny.doTheMost();
   window.manny = manny;
 })();
