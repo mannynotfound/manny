@@ -5,8 +5,6 @@ import { createContainer, normalizeName } from './helpers';
 
 export default class Application {
   constructor(options = {}) {
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
     this.do = this.do.bind(this);
     this.doTheMost = this.doTheMost.bind(this);
 
@@ -17,6 +15,8 @@ export default class Application {
       document.body.appendChild(div);
       this.container = div;
     }
+    this.width = this.container.clientWidth || window.innerWidth;
+    this.height = this.container.clientHeight || window.innerHeight;
     this.useBackground = options.useBackground;
   }
 
@@ -82,8 +82,8 @@ export default class Application {
     this.container.appendChild(this.renderer.domElement);
 
     window.addEventListener('resize', () => {
-      this.width = window.innerWidth;
-      this.height = window.innerHeight;
+      this.width = this.container.clientWidth || window.innerWidth;
+      this.height = this.container.clientHeight || window.innerHeight;
       this.camera.aspect = this.width / this.height;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(this.width, this.height);
