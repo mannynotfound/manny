@@ -3,12 +3,10 @@
 npm package for importing @mannynotfound into your website.
 
 ## Live Demo
-----
 
 [https://mannynotfound.glitch.me/](https://mannynotfound.glitch.me/)
 
 ## Usage
-----
 
 #### As a module
 
@@ -56,7 +54,6 @@ manny.doTheMost();
 | useBackground | boolean | false | if true, renders a white room and grid floor around manny |
 
 ## Actions
-----
 
 manny is using the [mixamo](https://mixamo.com) rig and a curated portion of their animation library with convenient aliases. 
 
@@ -70,7 +67,6 @@ manny.do('fly'); // fetched from cdn library + applied to manny instance
 For a full list of available animations, [check the library fixture.](src/js/fixtures/library.json)
 
 ## Running Locally
-----
 
 
 ```
