@@ -173,9 +173,6 @@ export default class Application {
   }
 
   loadModel(url, onSuccessCallback) {
-    const manager = new THREE.LoadingManager();
-    manager.onError = (_url) => console.error('Manager failed at ', _url);
-
     const onProgressCallback = (progress) => {
       const percentage = Math.round(100 * (progress.loaded / progress.total));
       const loaderText = document.getElementById('loader-text');
@@ -191,12 +188,13 @@ export default class Application {
       }
     };
 
-    const loader = new THREE.FBXLoader(manager);
+    const loader = new THREE.FBXLoader();
     loader.load(url, onSuccessCallback, onProgressCallback, onErrorCallback);
   }
 
   setupControls() {
     this.controls = new THREE.OrbitControls(this.camera);
+    this.controls.enableZoom = false;
     this.controls.target.set(0, 100, 0);
     this.controls.update();
   }
