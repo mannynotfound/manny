@@ -4,7 +4,7 @@ npm package for importing @mannynotfound into your website.
 
 ## Live Demo
 
-[https://mannynotfound.glitch.me/](https://mannynotfound.glitch.me/)
+[https://mannynotfound.github.io/](https://mannynotfound.github.io/)
 
 ## Usage
 
