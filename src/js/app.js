@@ -26,8 +26,8 @@ export default class Application {
     this.setupLights();
     this.useBackground && this.setupFloor();
     this.loadManny();
-    this.setupControls();
     this.setupRenderer();
+    this.setupControls();
     this.showLoader();
     this.render();
   }
@@ -202,7 +202,7 @@ export default class Application {
   }
 
   setupControls() {
-    this.controls = new THREE.OrbitControls(this.camera, this.container);
+    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableZoom = false;
     this.controls.target.set(0, 100, 0);
     this.controls.update();
