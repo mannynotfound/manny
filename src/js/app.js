@@ -52,6 +52,11 @@ export default class Application {
     }
     this.container.appendChild(wrap);
 
+    // not supported in all browsers
+    if (!text.animate) {
+      return;
+    }
+
     text.animate([
       { opacity: 1 },
       { opacity: 0.25 }
