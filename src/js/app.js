@@ -40,7 +40,7 @@ export default class Application {
     const height = this.renderer.domElement.clientHeight;
     wrap.style.cssText = `position: absolute; width: ${width}px; height: ${height}px;
       top: 0; left: 0; display: flex; justify-content: center; align-items: center;
-      z-index: 100000; color: black; font-weight: bold; font-size: 2.250rem;
+      z-index: 100000; color: black; font-weight: bold; font-size: 1.2rem;
       font-family: courier, "Courier New", monospace; text-align: center;`;
     const text = document.createElement('p');
     text.id = 'loader-text';
