@@ -202,7 +202,7 @@ export default class Application {
   }
 
   setupControls() {
-    this.controls = new THREE.OrbitControls(this.camera);
+    this.controls = new THREE.OrbitControls(this.camera, this.container);
     this.controls.enableZoom = false;
     this.controls.target.set(0, 100, 0);
     this.controls.update();
