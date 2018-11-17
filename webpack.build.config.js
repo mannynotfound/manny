@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
   entry: './src/js/index.js',
@@ -43,5 +44,8 @@ module.exports = {
     maxEntrypointSize: 2000000, // 2mb
     maxAssetSize: 10000000, // 10mb
     hints: 'warning'
-  }
+  },
+  optimization: {
+    minimizer: [new TerserPlugin()],
+  },
 };

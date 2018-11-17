@@ -103,7 +103,8 @@ export default class Application {
 
   setupCamera() {
     const fov = 45;
-    const aspect = this.width / this.height; const near = 1;
+    const aspect = this.width / this.height;
+    const near = 1;
     const far = 2000;
 
     this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
