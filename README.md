@@ -55,7 +55,7 @@ manny.doTheMost();
 
 ## Actions
 
-manny is using the [mixamo](https://mixamo.com) rig and a curated portion of their animation library with convenient aliases. 
+manny is using the [mixamo](https://www.mixamo.com) rig and a curated portion of their animation library with convenient aliases. 
 
 By default, manny comes with `wave` and `idle`. Any other actions will be fetched from the action library cdn, added to the manny instance and start playing.
 
