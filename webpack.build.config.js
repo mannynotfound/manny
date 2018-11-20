@@ -1,7 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
   entry: './src/js/index.js',
@@ -19,11 +18,12 @@ module.exports = {
     rules: [
       {
         test: /\.(js|jsx)$/,
-        include: [path.join(__dirname, 'js', 'src')],
+        include: [path.join(__dirname, 'src', 'js')],
         exclude: [path.join(__dirname, 'node_modules')],
         use: {
-          loader: 'babel-loader'
-        }
+          loader: 'babel-loader',
+          options: { presets: ['babel-preset-env'] },
+        },
       },
     ]
   },
@@ -44,8 +44,5 @@ module.exports = {
     maxEntrypointSize: 2000000, // 2mb
     maxAssetSize: 10000000, // 10mb
     hints: 'warning'
-  },
-  optimization: {
-    minimizer: [new TerserPlugin()],
   },
 };
