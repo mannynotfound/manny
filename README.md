@@ -1,6 +1,6 @@
 # Manny
 
-npm package for importing @mannynotfound into your website.
+npm package for importing @mannynotfound into your website. manny will be represented as a 3D model loaded with [three.js](https://threejs.org/) and appended to an element in the DOM.
 
 ## Live Demo
 
@@ -23,8 +23,11 @@ const manny = new Manny({
     useBackground: true,
 });
 
-// do specific action on loop
+// do specific action once
 manny.do('bellydance');
+
+// do specific action on loop
+manny.do('agony', { loop: true });
 
 // do all actions on loop
 manny.doTheMost();
@@ -55,21 +58,48 @@ manny.doTheMost();
 
 ## Actions
 
-manny is using the [mixamo](https://www.mixamo.com) rig and a curated portion of their animation library with convenient aliases. 
+manny is using the [mixamo](https://www.mixamo.com) rig and a curated portion of their animation library with convenient aliases. By default, manny comes with `wave` and `idle`. Any other actions will be fetched from the action library cdn, added to the manny instance and start playing.
 
-By default, manny comes with `wave` and `idle`. Any other actions will be fetched from the action library cdn, added to the manny instance and start playing.
+Actions are called with the `do` function:
 
 ```js
 manny.do('wave'); // loaded by default
 manny.do('fly'); // fetched from cdn library + applied to manny instance
 ```
 
+#### do options
+
+| Prop | Type | Default | Description | 
+| ---- |----- | ------- | ----------- |
+| loop | boolean | false | if true, will loop action until new action is chosen | 
+
+```js
+manny.do('bellydance', { loop: true });
+```
+
 For a full list of available animations, [check the library fixture.](src/js/fixtures/library.json)
+
+## Events
+
+manny's `do` function returns a promise that can be used to listen to the completion of an action. The promise
+will resolve with an "event" containing the type, action, target and direction. For example:
+
+```js
+manny.do('victory').then(event => {
+  console.log(event.type); // "finished"
+  console.log(event.action); // three.js AnimationAction instance
+  console.log(event.target); // three.js AnimationMixer instance
+  console.log(event.direction); // 1
+
+  showVictoryText('Good job!');
+});
+```
+
+_note: this can be used with `{ loop: true }` but will only fire the first time the action is completed_
 
 ## Running Locally
 
-
-```
+```bash
 npm run dev
 ```
 

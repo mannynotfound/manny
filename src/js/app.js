@@ -1,7 +1,9 @@
 import THREE from './vendor/three-shim';
 import LIBRARY from './fixtures/library';
 import { MANNY_URL, CLIPS_HOST } from './env';
-import { createContainer, normalizeName } from './helpers';
+import {
+  createContainer, createLoader, normalizeName, forceElementPosition,
+} from './helpers';
 
 export default class Application {
   constructor(options = {}) {
@@ -33,43 +35,15 @@ export default class Application {
   }
 
   showLoader() {
-    // css / html in js before it was cool
-    const wrap = document.createElement('div');
-    wrap.id = 'loader';
     const width = this.renderer.domElement.clientWidth;
     const height = this.renderer.domElement.clientHeight;
-    wrap.style.cssText = `position: absolute; width: ${width}px; height: ${height}px;
-      top: 0; left: 0; display: flex; justify-content: center; align-items: center;
-      z-index: 100000; color: black; font-weight: bold; font-size: 1.2rem;
-      font-family: courier, "Courier New", monospace; text-align: center;`;
-    const text = document.createElement('p');
-    text.id = 'loader-text';
-    text.innerText = 'loading...';
-    wrap.appendChild(text);
-    const containerStyle = this.container.style.position;
-    if (!containerStyle || containerStyle === 'static') {
-      this.container.style.position = 'relative';
-    }
-    this.container.appendChild(wrap);
-
-    // not supported in all browsers
-    if (!text.animate) {
-      return;
-    }
-
-    text.animate([
-      { opacity: 1 },
-      { opacity: 0.25 }
-    ], {
-      duration: 500,
-      direction: 'alternate',
-      iterations: Infinity,
-    });
+    this.loader = createLoader(width, height);
+    forceElementPosition(this.container);
+    this.container.appendChild(this.loader);
   }
 
   removeLoader() {
-    const loader = document.getElementById('loader');
-    loader.parentNode.removeChild(loader);
+    this.loader.parentNode.removeChild(this.loader);
   }
 
   setupScene() {
@@ -143,26 +117,32 @@ export default class Application {
   }
 
   loadClip(clipName) {
-    const onSuccessCallback = (object) => {
-      const clipMatch = object.animations.find(clip => {
-        return normalizeName(clip.name) === clipName;
-      })
-      if (clipMatch) {
-        this.manny3D.animations.push(clipMatch);
-        this.playClip(clipMatch);
-      }
-      this.removeLoader();
-    };
+    return new Promise((resolve, reject) => {
+      const onSuccessCallback = (object) => {
+        const clipMatch = object.animations.find(clip => {
+          return normalizeName(clip.name) === clipName;
+        })
+        if (clipMatch) {
+          this.manny3D.animations.push(clipMatch);
+          resolve(clipMatch);
+        }
+        this.removeLoader();
+      };
 
-    const url = `${CLIPS_HOST + clipName}.fbx`;
-    this.loadModel(url, onSuccessCallback);
+      const onProgressCallback = () => {};
+      const onErrorCallback = (err) => reject(err);
+
+      const url = `${CLIPS_HOST + clipName}.fbx`;
+      const loader = new THREE.FBXLoader();
+      loader.load(url, onSuccessCallback, onProgressCallback, onErrorCallback);
+    });
   }
 
   loadManny() {
     const onSuccessCallback = (object) => {
       this.manny3D = object;
       this.manny3D.name = 'manny';
-
+      this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
       this.manny3D.traverse(child => {
         if (child.isMesh) {
           child.castShadow = true;
@@ -171,18 +151,9 @@ export default class Application {
       });
 
       this.scene.add(this.manny3D);
-      if (!this.doCache || this.doCache === 'theMost') {
-        this.doTheMost();
-      } else {
-        this.do(this.doCache);
-      }
       this.removeLoader();
     };
 
-    this.loadModel(MANNY_URL, onSuccessCallback);
-  }
-
-  loadModel(url, onSuccessCallback) {
     const onProgressCallback = (progress) => {
       const percentage = Math.round(100 * (progress.loaded / progress.total));
       const loaderText = document.getElementById('loader-text');
@@ -199,7 +170,20 @@ export default class Application {
     };
 
     const loader = new THREE.FBXLoader();
-    loader.load(url, onSuccessCallback, onProgressCallback, onErrorCallback);
+    loader.load(MANNY_URL, onSuccessCallback, onProgressCallback, onErrorCallback);
+  }
+
+  waitForManny() {
+    return new Promise(resolve => {
+      const checkManny = () => {
+        if (this.manny3D) {
+          resolve(this.manny3D);
+        } else {
+          setTimeout(checkManny, 100);
+        }
+      };
+      checkManny();
+    });
   }
 
   setupControls() {
@@ -207,19 +191,6 @@ export default class Application {
     this.controls.enableZoom = false;
     this.controls.target.set(0, 100, 0);
     this.controls.update();
-  }
-
-  render() {
-    if (this.controls) {
-      this.controls.update();
-    }
-
-    if (this.manny3D && this.manny3D.mixer) {
-      this.manny3D.mixer.update(this.clock.getDelta());
-    }
-
-    this.renderer.render(this.scene, this.camera);
-    requestAnimationFrame(() => this.render());
   }
 
   playNextClip(animation) {
@@ -233,71 +204,76 @@ export default class Application {
     this.currentAction.crossFadeTo(nextAction, 0).play();
   }
 
-  playClip(clip) {
-    this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
-    const nextAction = this.manny3D.mixer.clipAction(clip).reset().setLoop(THREE.LoopRepeat);
-    this.manny3D.mixer.stopAllAction();
-    if (this.currentAction) {
-      this.currentAction.crossFadeTo(nextAction, 0).play();
-    } else {
-      this.currentAction = nextAction;
-      this.currentAction.play()
-    }
+  playClip(clip, options) {
+    return new Promise(resolve => {
+      this.manny3D.mixer.removeEventListener('finished');
+      const nextAction = this.manny3D.mixer.clipAction(clip).reset().setLoop(THREE.LoopOnce);
+      // for short pose animations, pause it on last frame
+      if (clip.duration < 0.1) {
+        nextAction.clampWhenFinished = true;
+      }
+      this.manny3D.mixer.stopAllAction();
+      if (this.currentAction) {
+        this.currentAction.crossFadeTo(nextAction, 0).play();
+      } else {
+        this.currentAction = nextAction;
+        this.currentAction.play()
+      }
+      this.manny3D.mixer.addEventListener('finished', (event) => {
+        if (options.loop) {
+          this.manny3D.mixer.clipAction(clip).reset().setLoop(THREE.LoopRepeat);
+        }
+        resolve(event);
+      });
+    });
   }
 
-  do(clipName) {
-    if (!clipName) {
-      console.error('Please provide an action to perform.');
-      return;
-    }
+  do(clipName, options) {
+    return new Promise(resolve => {
+      clipName = normalizeName(clipName);
 
-    clipName = normalizeName(clipName);
-
-    if (!this.manny3D) {
-      if (clipName) {
-        this.doCache = clipName;
+      if (!clipName) {
+        throw 'Please provide an action to perform.';
       }
-      return;
-    }
 
-    if (!this.manny3D.mixer) {
-      this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
-    }
+      this.waitForManny().then(() => {
+        const existingClip = this.manny3D.animations.find(clip => (
+          normalizeName(clip.name) === clipName
+        ));
 
-    const existingClip = this.manny3D.animations.find(clip => (
-      normalizeName(clip.name) === clipName
-    ));
-
-    if (existingClip) {
-      this.playClip(existingClip);
-      return;
-    }
-
-    if (LIBRARY.includes(clipName)) {
-      this.loadClip(clipName);
-      return;
-    }
-
-    console.warn(`Couldnt find action ${clipName}, use one of ${LIBRARY.join(', ')}`);
-    return;
+        if (existingClip) {
+          this.playClip(existingClip, options).then(resolve);
+        } else if (LIBRARY.includes(clipName)) {
+          this.loadClip(clipName).then(clip => this.playClip(clip, options).then(resolve))
+        } else {
+          throw `Couldnt find action ${clipName}, use one of ${LIBRARY.join(', ')}`;
+        }
+      });
+    });
   }
 
   doTheMost() {
-    if (!this.manny3D) {
-      this.doCache = 'theMost';
-      return;
+    this.waitForManny().then(() => {
+      this.manny3D.mixer.stopAllAction();
+      this.currentAction = this.manny3D.mixer.clipAction(this.manny3D.animations[0]);
+      this.currentAction.setLoop(THREE.LoopOnce);
+      this.currentAction.play();
+
+      this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
+      this.manny3D.mixer.addEventListener('finished', this.playNextClip.bind(this));
+    });
+  }
+
+  render() {
+    if (this.controls) {
+      this.controls.update();
     }
 
-    if (!this.manny3D.mixer) {
-      this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
+    if (this.manny3D && this.manny3D.mixer) {
+      this.manny3D.mixer.update(this.clock.getDelta());
     }
 
-    this.manny3D.mixer.stopAllAction();
-    this.currentAction = this.manny3D.mixer.clipAction(this.manny3D.animations[0]);
-    this.currentAction.setLoop(THREE.LoopOnce);
-    this.currentAction.play();
-
-    this.manny3D.mixer.removeEventListener('finished', this.playNextClip);
-    this.manny3D.mixer.addEventListener('finished', this.playNextClip.bind(this));
+    this.renderer.render(this.scene, this.camera);
+    requestAnimationFrame(() => this.render());
   }
 }

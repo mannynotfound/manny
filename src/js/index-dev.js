@@ -7,4 +7,8 @@ import Manny from './index';
     useBackground: false,
   });
   window.manny = manny;
+
+  manny.do('wave', { loop: true }).then(event => {
+    console.log('Action completed!', event);
+  });
 })();
