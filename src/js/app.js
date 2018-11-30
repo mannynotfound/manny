@@ -228,7 +228,7 @@ export default class Application {
     });
   }
 
-  do(clipName, options) {
+  do(clipName, options = {}) {
     return new Promise(resolve => {
       clipName = normalizeName(clipName);
 
