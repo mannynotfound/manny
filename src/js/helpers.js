@@ -23,7 +23,7 @@ export const createLoader = (width, height) => {
 
   // not supported in all browsers
   if (!text.animate) {
-    return;
+    return wrap;
   }
 
   text.animate([
