@@ -43,7 +43,9 @@ export default class Application {
   }
 
   removeLoader() {
-    this.loader.parentNode.removeChild(this.loader);
+    if (this.loader.parentNode) {
+      this.loader.parentNode.removeChild(this.loader);
+    }
   }
 
   setupScene() {
