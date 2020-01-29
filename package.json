@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "webpack-dev-server --config webpack.dev.config.js --mode development --open",
     "generate:library": "node generate-library.js",
-    "build:package": "NODE_ENV=production webpack --config webpack.build.config.js --progress --mode production",
+    "build:package": "webpack --config webpack.build.config.js --progress --mode production",
     "build": "npm run generate:library && npm run build:package"
   },
   "repository": {
