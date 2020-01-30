@@ -121,6 +121,7 @@ export default class Application {
   }
 
   loadClip(clipName) {
+    this.hideManny();
     return new Promise((resolve, reject) => {
       const onSuccessCallback = (object) => {
         const clipMatch = object.animations.find(clip => {
@@ -209,6 +210,7 @@ export default class Application {
   }
 
   playClip(clip, options) {
+    this.showManny();
     return new Promise(resolve => {
       this.manny3D.mixer.removeEventListener('finished');
       const nextAction = this.manny3D.mixer.clipAction(clip).reset().setLoop(THREE.LoopOnce);
@@ -232,7 +234,26 @@ export default class Application {
     });
   }
 
+  hideManny() {
+    if (!this.manny3D) { return; }
+    this.manny3D.traverse(child => {
+      if (child.isMesh) {
+        child.visible = false;
+      }
+    });
+  }
+
+  showManny() {
+    if (!this.manny3D) { return; }
+    this.manny3D.traverse(child => {
+      if (child.isMesh) {
+        child.visible = true;
+      }
+    });
+  }
+
   do(clipName, options = {}) {
+    this.hideManny();
     return new Promise(resolve => {
       clipName = normalizeName(clipName);
 
