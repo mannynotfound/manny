@@ -152,8 +152,17 @@ export default class Application {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
+          child.visible = false;
         }
       });
+
+      // wait a quarter second in case were loading an animation,
+      // if not just reveal manny
+      setTimeout(() => {
+        if (!this.doQueue) {
+          this.showManny();
+        }
+      }, 250);
 
       this.scene.add(this.manny3D);
       this.removeLoader();
@@ -253,6 +262,7 @@ export default class Application {
   }
 
   do(clipName, options = {}) {
+    this.doQueue = clipName;
     this.hideManny();
     return new Promise(resolve => {
       clipName = normalizeName(clipName);
