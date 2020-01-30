@@ -50,6 +50,8 @@ export default class Application {
 
   setupScene() {
     this.scene = new THREE.Scene();
+    window.THREE = THREE;
+    window.scene = this.scene;
     this.clock = new THREE.Clock();
     if (this.useBackground) {
       this.scene.background = new THREE.Color(0xf6f6f6);
