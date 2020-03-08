@@ -26,10 +26,8 @@ export default class Application {
     this.setupScene();
     this.setupCamera();
     this.setupLights();
-    this.useBackground && this.setupFloor();
     this.loadManny();
     this.setupRenderer();
-    this.setupControls();
     this.showLoader();
     this.render();
   }
@@ -86,7 +84,7 @@ export default class Application {
     const far = 2000;
 
     this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    this.camera.position.set(100, 200, 300);
+    this.camera.position.set(100, 100, 300);
   }
 
   setupLights() {
@@ -105,18 +103,10 @@ export default class Application {
   }
 
   setupFloor() {
-    const material = new THREE.MeshPhongMaterial({ color: 0xcccccc, depthWrite: false });
-    material.castShadow = false;
-    material.receiveShadow = true;
-
-    const mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), material);
-    mesh.rotation.x = -Math.PI / 2;
-
-    this.scene.add(mesh);
-
     const grid = new THREE.GridHelper(2000, 75, 0x888888, 0x888888);
     grid.material.opacity = 0.5;
     grid.material.transparent = true;
+    this.floor = grid;
     this.scene.add(grid);
   }
 
@@ -145,6 +135,7 @@ export default class Application {
 
   loadManny() {
     const onSuccessCallback = (object) => {
+      console.log('manny=>', object);
       this.manny3D = object;
       this.manny3D.name = 'manny';
       this.manny3D.mixer = new THREE.AnimationMixer(this.manny3D);
@@ -164,7 +155,16 @@ export default class Application {
         }
       }, 250);
 
+      this.setupControls();
+
+      const box = new THREE.Box3().setFromObject(this.manny3D);
+      const centerY = -(box.getSize().y / 2);
+      this.manny3D.position.set(0, centerY, 0);
       this.scene.add(this.manny3D);
+      if (this.useBackground) {
+        this.setupFloor();
+        this.floor.position.set(0, centerY, 0);
+      }
       this.removeLoader();
     };
 
@@ -203,7 +203,8 @@ export default class Application {
   setupControls() {
     this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableZoom = false;
-    this.controls.target.set(0, 100, 0);
+    const { x, y, z } = this.manny3D.position;
+    this.controls.target.set(x, y, z);
     this.controls.update();
   }
 

@@ -4,7 +4,7 @@ import Manny from './index';
 (() => {
   const manny = new Manny({
     container: "#canvas-container",
-    useBackground: false,
+    useBackground: true,
   });
   window.manny = manny;
 
