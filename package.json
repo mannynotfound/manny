@@ -16,7 +16,7 @@
   "author": "@mannynotfound",
   "license": "WTFPL",
   "dependencies": {
-    "three": "0.97.0"
+    "three": "0.125.0"
   },
   "devDependencies": {
     "babel-core": "6.26.3",
