@@ -1,101 +1,147 @@
 # Manny
 
-npm package for importing @mannynotfound into your website. manny will be represented as a 3D model loaded with [three.js](https://threejs.org/) and appended to an element in the DOM.
+Import the @mannynotfound model into your `@react-three/fiber` app.
 
-## Live Demo
+Live Demo: [https://mannynotfound.github.io/](https://mannynotfound.github.io/)
 
-[https://mannynotfound.github.io/](https://mannynotfound.github.io/)
+## Dependencies
 
-## Usage
+- `react` v16.14.0 or higher
+- `@react-three/fiber` v7.0.26 or higher
+- `@react-three/drei` v8.7.3 or higher
 
-#### As a module
+## Installation
 
 ```bash
 npm install manny
 ```
 
-```js
-import Manny from 'manny';
-
-// render to the DOM
-const manny = new Manny({
-    container: '#container',
-    useBackground: true,
-});
-
-// do specific action once
-manny.do('bellydance');
-
-// do specific action on loop
-manny.do('agony', { loop: true });
-
-// do all actions on loop
-manny.doTheMost();
-```
-
-#### As a library
-
-```html
-<html>
-    <head></head>
-    <body>
-        <div id="container"></div>
-        <script src="https://cdn.jsdelivr.net/npm/manny/lib/manny.js" type="text/javascript"></script>
-        <script>
-            var manny = new Manny({ container: '#container' });
-            manny.doTheMost();
-        </script>
-    </body>
-</html>
-```
-
-#### Module options
-
-| Prop | Type | Default | Description | 
-| ---- |----- | ------- | ----------- |
-| container | string | 'body' | dom query selector for element to append manny | 
-| useBackground | boolean | false | if true, renders a white room and grid floor around manny |
-
-## Actions
-
-manny is using the [mixamo](https://www.mixamo.com) rig and a curated portion of their animation library with convenient aliases. By default, manny comes with `wave` and `idle`. Any other actions will be fetched from the action library cdn, added to the manny instance and start playing.
-
-Actions are called with the `do` function:
+## Usage
 
 ```js
-manny.do('wave'); // loaded by default
-manny.do('fly'); // fetched from cdn library + applied to manny instance
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import manny from "manny";
+
+function Manny() {
+  const mannyObj = manny({
+    animationOptions: {
+      active: "idle",
+    },
+  });
+
+  return (
+    <group position={[0, -0.75, 0]}>
+      <Suspense fallback={() => null}>
+        <primitive object={mannyObj} dispose={null} />
+      </Suspense>
+    </group>
+  );
+}
+
+function App() {
+  return (
+    <div style={{ height: "100vh", width: "100%" }}>
+      <Canvas
+        flat
+        camera={{
+          fov: 45,
+          near: 0.1,
+          far: 1000,
+          position: [0, 1, 2.5],
+        }}
+      >
+        {/* manny has to be called inside @react-three/fiber canvas context */}
+        <Manny />
+        <OrbitControls
+          rotateSpeed={1}
+          target={[0, 0, 0]}
+          minDistance={2.5}
+          maxDistance={10}
+        />
+        <hemisphereLight
+          skyColor={0xffffff}
+          groundColor={0x444444}
+          position={[0, 0, 0]}
+        />
+        <directionalLight
+          color={0xffffff}
+          intensity={0.25}
+          castShadow
+          position={[0, 200, 100]}
+        />
+      </Canvas>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
 ```
 
-#### do options
+## Configuration
 
-| Prop | Type | Default | Description | 
-| ---- |----- | ------- | ----------- |
-| loop | boolean | false | if true, will loop action until new action is chosen | 
+#### props
+
+| Prop             | Type   | Default                                                          | Description                                         |
+| ---------------- | ------ | ---------------------------------------------------------------- | --------------------------------------------------- |
+| modelPath        | string | https://d2tm2f4d5v0kas.cloudfront.net/3.0/manny.fbx              | url for loading manny model                         |
+| textureUrl       | string | https://d2tm2f4d5v0kas.cloudfront.net/3.0/manny_body_texture.jpg | url for loading manny skin texture                  |
+| animationOptions | object | { paths: {} }                                                    | configuration object for loading/playing animations |
+
+#### animationOptions
+
+manny is using the [mixamo](https://www.mixamo.com) rig and supports loading animations in .fbx or .glb format. To use your own animations, define them in `paths` with the animation name and url as key/value pairs.
+
+If no `animationOptions` are provided, the returned manny object will not have an animation mixer and will be in a static default pose with arms resting at the side, useful if using custom animation state logic.
+
+| Prop    | Type   | Default         | Description                                                                         |
+| ------- | ------ | --------------- | ----------------------------------------------------------------------------------- |
+| paths   | object | { idle: '...' } | object where keys represent animation name, and values represent animations to load |
+| active  | string | undefined       | key of active animation to play                                                     |
+| fadeIn  | float  | 0.2             | duration in seconds to transition in new animations                                 |
+| fadeOut | float  | 0.2             | duration in seconds to transition out new animations                                |
 
 ```js
-manny.do('bellydance', { loop: true });
+const PATH = "https://yourhost.com/animations";
+
+const paths = {
+  idle: `${PATH}/idle.glb`,
+  walk: `${PATH}/walk.glb`,
+  run: `${PATH}/run.glb`,
+  jump: `${PATH}/jump.glb`,
+  landing: `${PATH}/landing.glb`,
+  inAir: `${PATH}/falling_idle.glb`,
+  backpedal: `${PATH}/backpedal.glb`,
+  turnLeft: `${PATH}/turn_left.glb`,
+  turnRight: `${PATH}/turn_right.glb`,
+  strafeLeft: `${PATH}/strafe_left.glb`,
+  strafeRight: `${PATH}/strafe_right.glb`,
+};
+
+function Manny() {
+  const mannyObj = manny({
+    animationOptions: {
+      active: "idle",
+      paths,
+    },
+  });
+
+  return (
+    <group position={[0, -0.75, 0]}>
+      <Suspense fallback={() => null}>
+        <primitive object={mannyObj} dispose={null} />
+      </Suspense>
+    </group>
+  );
+}
 ```
-
-For a full list of available animations, [check the library fixture.](src/js/fixtures/library.json)
-
-## Events
-
-manny's `do` function returns a promise that can be used to listen to the completion of an action. The promise
-will resolve with an "event" containing the type, action, target and direction. For example:
-
-```js
-manny.do('victory').then(event => {
-  console.log(event.type); // "finished"
-  console.log(event.action); // three.js AnimationAction instance
-  console.log(event.target); // three.js AnimationMixer instance
-  console.log(event.direction); // 1
-
-  showVictoryText('Good job!');
-});
-```
-
-_note: this can be used with `{ loop: true }` but will only fire the first time the action is completed_
 
 ## Running Locally
 
@@ -103,4 +149,4 @@ _note: this can be used with `{ loop: true }` but will only fire the first time 
 npm run dev
 ```
 
-Go to `localhost:8080` to see the local test application.
+Go to `localhost:3000` to see the local test application.
