@@ -3,26 +3,30 @@ import { useManny, useAnimations } from "./hooks";
 import { CLIPS_HOST, MANNY_TEXTURE, MANNY_MODEL } from "./constants";
 
 const ANIMATION_PATHS = {
-  idle: `${CLIPS_HOST}/idle.glb`,
+  idle: `${CLIPS_HOST}/idle_stand.fbx`,
 };
 
 const Manny = (props) => {
   const modelPath = props?.modelPath ?? MANNY_MODEL;
   const textureUrl = props?.textureUrl ?? MANNY_TEXTURE;
   const mannyObj = useManny(modelPath, textureUrl);
-  const { paths, active, fadeIn, fadeOut } = props?.animationOptions ?? {};
+  const { paused, paths, active, fadeIn, fadeOut } =
+    props?.animationOptions ?? {};
   const { actions } = useAnimations(mannyObj, paths ?? ANIMATION_PATHS);
 
   useEffect(() => {
-    actions?.[active]
-      ?.reset()
-      .fadeIn(fadeIn ?? 0.2)
-      .play();
+    if (actions?.[active]) {
+      actions[active]
+        .reset()
+        .fadeIn(fadeIn ?? 0.2)
+        .play();
+      actions[active].paused = paused;
+    }
 
     return () => {
       actions?.[active]?.fadeOut(fadeOut ?? 0.2);
     };
-  }, [active, actions]);
+  }, [active, actions, paused]);
 
   return mannyObj;
 };

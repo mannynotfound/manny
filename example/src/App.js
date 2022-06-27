@@ -12,10 +12,8 @@ function Manny() {
   });
 
   return (
-    <group position={[0, -0.75, 0]}>
-      <Suspense fallback={() => null}>
-        <primitive object={mannyObj} dispose={null} />
-      </Suspense>
+    <group position={[0, -85, 0]}>
+      <primitive object={mannyObj} dispose={null} />
     </group>
   );
 }
@@ -26,19 +24,20 @@ function App() {
       <Canvas
         camera={{
           fov: 45,
-          near: 0.1,
-          far: 1000,
-          position: [0, 1, 2.5],
+          near: 1,
+          far: 2000,
+          position: [25, 100, 300],
         }}
-        gl={{ preserveDrawingBuffer: true }}
         flat
       >
-        <Manny />
+        <Suspense fallback={null}>
+          <Manny />
+        </Suspense>
         <OrbitControls
           rotateSpeed={1}
           target={[0, 0, 0]}
-          minDistance={2.5}
-          maxDistance={10}
+          minDistance={100}
+          maxDistance={1000}
         />
         <hemisphereLight
           skyColor={0xffffff}

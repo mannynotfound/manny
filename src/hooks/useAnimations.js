@@ -77,21 +77,24 @@ function useAnimations(targetObj, animationPaths) {
     };
   }, [clips]);
 
-  // set clips when ready
   useEffect(() => {
     const clipsToSet = [];
 
+    const clipNames = clips.map((clip) => clip.name);
+    const newNames = [];
     Object.keys(animations).forEach((name) => {
       if (animations[name]?.animations?.length) {
         animations[name].animations[0].name = name;
         clipsToSet.push(animations[name].animations[0]);
+        newNames.push(name);
       }
     });
 
-    if (clips.length < clipsToSet.length) {
+    const isDirty = newNames.some((name, idx) => clipNames[idx] !== name);
+    if (isDirty) {
       setClips(clipsToSet);
     }
-  }, [animationAmount]);
+  }, [Object.keys(animations)]);
 
   return api;
 }
