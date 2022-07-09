@@ -20,12 +20,17 @@ const Manny = (props) => {
         .reset()
         .fadeIn(fadeIn ?? 0.2)
         .play();
-      actions[active].paused = paused;
     }
 
     return () => {
       actions?.[active]?.fadeOut(fadeOut ?? 0.2);
     };
+  }, [active, actions]);
+
+  useEffect(() => {
+    if (actions[active]) {
+      actions[active].paused = paused;
+    }
   }, [active, actions, paused]);
 
   return mannyObj;
