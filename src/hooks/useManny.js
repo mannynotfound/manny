@@ -23,6 +23,8 @@ function useManny(modelPath, textureUrl) {
         child.material = mannySkin;
       }
     });
+    
+    fbxClone.getObjectByName('Eyes').frustumCulled = false;
 
     return fbxClone;
   }, [texture]);
