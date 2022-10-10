@@ -3,7 +3,7 @@ import { useManny, useAnimations } from './hooks';
 import { CLIPS_HOST, MANNY_TEXTURE, MANNY_MODEL } from './constants';
 
 const ANIMATION_PATHS = {
-  idle: `${CLIPS_HOST}/idle_stand.glb`,
+  idle: `${CLIPS_HOST}/idle_stand.fbx`,
 };
 
 const Manny = (props) => {
