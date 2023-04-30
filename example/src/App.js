@@ -1,14 +1,13 @@
 import "./App.css";
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
+import Select from 'react-select';
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import manny from "manny";
+import manny, { animations } from "manny";
 
-function Manny() {
+function Manny({ animation }) {
   const mannyObj = manny({
-    animationOptions: {
-      active: "idle",
-    },
+    animation,
   });
 
   return (
@@ -18,7 +17,16 @@ function Manny() {
   );
 }
 
+const animOptions = animations.map((anim) => ({
+  value: anim,
+  label: anim,
+}));
+
 function App() {
+  const [anim, setAnim] = useState({
+    label: 'idle',
+    value: 'idle'
+  })
   return (
     <div className="App">
       <Canvas
@@ -31,7 +39,7 @@ function App() {
         flat
       >
         <Suspense fallback={null}>
-          <Manny />
+          <Manny animation={anim.value} />
         </Suspense>
         <OrbitControls
           rotateSpeed={1}
@@ -51,6 +59,9 @@ function App() {
           position={[0, 200, 100]}
         />
       </Canvas>
+      <footer>
+        <Select menuPlacement="top" onChange={setAnim} options={animOptions} />
+      </footer>
     </div>
   );
 }

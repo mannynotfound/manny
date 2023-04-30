@@ -1,0 +1,23 @@
+{
+  "endOfLine": "auto",
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 80,
+  "useTabs": false,
+  "tabWidth": 2,
+  "semi": true,
+  "bracketSpacing": true,
+  "importOrder": [
+    "^react*",
+    "<THIRD_PARTY_MODULES>",
+    "components",
+    "fixtures",
+    "hooks",
+    "utils",
+    "views",
+    "^@*$",
+    "^[./]"
+  ],
+  "importOrderSeparation": false,
+  "importOrderSortSpecifiers": true
+}
