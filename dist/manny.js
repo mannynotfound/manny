@@ -168,7 +168,7 @@ function Manny(props = {}) {
     library
   } = props ?? {};
   const mannyObj = useManny(modelPath, textureUrl);
-  const { actions } = useAnimations(mannyObj, animation, library);
+  const { actions, mixer } = useAnimations(mannyObj, animation, library);
   const aKey = animation ?? "";
   const activeAnim = actions?.[aKey];
   useEffect(() => {
@@ -187,12 +187,18 @@ function Manny(props = {}) {
     }
   }, [activeAnim, paused]);
   useEffect(() => {
-    if (activeAnim !== void 0 && clamp) {
-      activeAnim.setLoop(2200, 0);
-      activeAnim.clampWhenFinished = true;
+    if (activeAnim !== void 0) {
+      const loop = clamp ? 2200 : 2201;
+      const repetitions = clamp ? 0 : Infinity;
+      activeAnim.setLoop(loop, repetitions);
+      activeAnim.clampWhenFinished = clamp;
     }
   }, [activeAnim, clamp]);
-  return mannyObj;
+  return {
+    manny: mannyObj,
+    actions,
+    mixer
+  };
 }
 const animations = Object.keys(DEFAULT_LIBRARY);
 

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { Object3D } from 'three';
+import type { AnimationAction, AnimationMixer, Object3D } from 'three';
 import { AnimationLibrary, DefaultLibrary } from './fixtures/animations';
 import { DEFAULT_LIBRARY } from './fixtures/animations';
 import { useAnimations, useManny } from './hooks';
@@ -24,17 +24,23 @@ interface Props<T extends AnimationLibrary> extends AnimationProps {
   library: T;
 }
 
+type MannyReturn = {
+  manny: Object3D;
+  actions: Record<string, AnimationAction> | undefined;
+  mixer: AnimationMixer;
+};
+
 // calling manny with no args
-function Manny(): Object3D;
+function Manny(): MannyReturn;
 // calling manny with no animation args
-function Manny(args: BaseProps): Object3D;
+function Manny(args: BaseProps): MannyReturn;
 // calling manny with a default animationn
-function Manny(args: DefaultAnimationProps): Object3D;
+function Manny(args: DefaultAnimationProps): MannyReturn;
 // calling manny with a custom animation
-function Manny<T extends AnimationLibrary>(props: Props<T>): Object3D;
+function Manny<T extends AnimationLibrary>(props: Props<T>): MannyReturn;
 function Manny<T extends AnimationLibrary>(
   props: Partial<Props<T>> = {}
-): Object3D {
+): MannyReturn {
   const {
     modelPath = MANNY_MODEL,
     textureUrl = MANNY_TEXTURE,
@@ -44,7 +50,7 @@ function Manny<T extends AnimationLibrary>(
     library,
   } = props ?? {};
   const mannyObj = useManny(modelPath, textureUrl);
-  const { actions } = useAnimations(mannyObj, animation, library);
+  const { actions, mixer } = useAnimations(mannyObj, animation, library);
   const aKey = animation ?? '';
   const activeAnim = actions?.[aKey];
 
@@ -75,7 +81,11 @@ function Manny<T extends AnimationLibrary>(
     }
   }, [activeAnim, clamp]);
 
-  return mannyObj;
+  return {
+    manny: mannyObj,
+    actions,
+    mixer,
+  };
 }
 
 export default Manny;
